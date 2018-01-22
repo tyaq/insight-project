@@ -21,6 +21,6 @@ public class BuildEvent extends RichMapFunction<String,Tuple4<String,LocalDateTi
         Integer temp = Integer.parseInt(myMap.get("temp"));
         Float kws = Float.parseFloat(myMap.get("kws"));
 
-        return new Tuple4<>(device_id, timestamp, temp, kws);
+        return new Tuple4<String, LocalDateTime, Integer, Float>(device_id, timestamp, temp, kws);
     }
 }

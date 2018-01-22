@@ -6,14 +6,10 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.Obje
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer08;
-import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserializationSchema;
+import org.apache.flink.streaming.util.serialization.JSONDeserializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import com.google.gson.Gson;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 public class sensorStream {
@@ -28,11 +24,14 @@ public class sensorStream {
         properties.setProperty("group.id", "group1");
 
         // create a stream of sensor readings
-        DataStream<String> messageStream = env.addSource(new FlinkKafkaConsumer08<>("device_activity_stream", new SimpleStringSchema(), properties).setStartFromEarliest());
-        DataStream<Tuple4<String,LocalDateTime,Integer,Float>> eventStream = messageStream.map(new BuildEvent());
+        DataStream<ObjectNode> messageStream = env.addSource(new FlinkKafkaConsumer08<>("device_activity_stream", new JSONDeserializationSchema(), properties).setStartFromEarliest());
+        // DataStream<Tuple4<String,LocalDateTime,Integer,Float>> eventStream = messageStream.map(new BuildEvent());
 
-        // messageStream.filter((FilterFunction) jsonNode -> ( jsonNode.get("temp").asInt() >= 0)).writeAsText("out.txt").setParallelism(1);
-        eventStream.map((MapFunction) event -> event.getClass().toString()+"$").writeAsText("out.txt").setParallelism(1);;
+        // messageStream.rebalance().filter((FilterFunction) jsonNode -> ( jsonNode.get("temp").asInt() >= 0)).writeAsText("out.txt").setParallelism(1);
+        // eventStream.map((MapFunction) event -> event.f1+"$").writeAsText("out.txt").setParallelism(1);;
+
+        messageStream.rebalance().map((MapFunction<ObjectNode, String>) node -> "Kafka and Flink says: " + node.get("Temp")).print();
+
         env.execute("JSON example");
 
     }
