@@ -17,7 +17,7 @@ class Producer(object):
         user_counter=1
         while True:
             time_field = datetime.now().strftime("%Y%m%d %H%M%S")
-            device_id='device'+str(user_counter) #device IDs will be in the form userXXXX
+            device_id='device'+str(user_counter) #device IDs
             temp = random.randint(-20,10)
             kws = random.randint(200,600)/3600
             message_info = json.dumps({ "time":time_field,
