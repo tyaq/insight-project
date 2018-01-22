@@ -30,7 +30,7 @@ public class sensorStream {
         // messageStream.rebalance().filter((FilterFunction) jsonNode -> ( jsonNode.get("temp").asInt() >= 0)).writeAsText("out.txt").setParallelism(1);
         // eventStream.map((MapFunction) event -> event.f1+"$").writeAsText("out.txt").setParallelism(1);;
 
-        messageStream.rebalance().map((MapFunction<ObjectNode, String>) node -> "Kafka and Flink says: " + node.get("Temp")).writeAsText("out.txt").setParallelism(1);
+        messageStream.rebalance().map((MapFunction<ObjectNode, String>) node -> "Kafka and Flink says: " + node.get("temp").asText()).writeAsText("out.txt").setParallelism(1);
 
         env.execute("JSON example");
 
