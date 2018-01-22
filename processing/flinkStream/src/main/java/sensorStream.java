@@ -23,7 +23,7 @@ public class sensorStream {
         DataStream<ObjectNode> messageStream = env.addSource(new FlinkKafkaConsumer08<>("device_activity_stream", new JSONDeserializationSchema(), properties).setStartFromEarliest());
 
         // messageStream.filter((FilterFunction) jsonNode -> ( jsonNode.get("temp").asInt() >= 0)).writeAsText("out.txt").setParallelism(1);
-        messageStream.map((MapFunction) x -> (x.getClass().toString())).writeAsText("out.txt").setParallelism(1);;
+        messageStream.map((MapFunction) x -> (x.get("temp").asInt().toString())).writeAsText("out.txt").setParallelism(1);;
         env.execute("JSON example");
 
     }
