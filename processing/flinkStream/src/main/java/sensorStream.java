@@ -1,3 +1,5 @@
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -16,12 +18,13 @@ public class sensorStream {
         // only required for Kafka 0.8
         properties.setProperty("zookeeper.connect", "localhost:2181");
         properties.setProperty("group.id", "group1");
+        properties.setProperty("auto.offset.reset", "smallest");
 
         // create a stream of sensor readings
         DataStream<ObjectNode> messageStream = env.addSource(new FlinkKafkaConsumer08<>("device_activity_stream", new JSONDeserializationSchema(), properties));
 
-        messageStream.rebalance().writeAsText("out.txt").setParallelism(1);
-
+        // messageStream.filter((FilterFunction) jsonNode -> ( jsonNode.get("temp").asInt() >= 0)).writeAsText("out.txt").setParallelism(1);
+        messageStream.map((MapFunction) x -> (x.getClass().toString())).writeAsText("out.txt").setParallelism(1);;
         env.execute("JSON example");
 
     }
