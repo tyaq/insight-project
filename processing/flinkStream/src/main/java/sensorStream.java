@@ -4,7 +4,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.Obje
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer08;
-import org.apache.flink.streaming.util.serialization.JSONDeserializationSchema;
+import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserializationSchema;
 
         import java.util.Properties;
 
@@ -20,10 +20,10 @@ public class sensorStream {
         properties.setProperty("group.id", "group1");
 
         // create a stream of sensor readings
-        DataStream<ObjectNode> messageStream = env.addSource(new FlinkKafkaConsumer08<>("device_activity_stream", new JSONDeserializationSchema(), properties).setStartFromEarliest());
+        DataStream<ObjectNode> messageStream = env.addSource(new FlinkKafkaConsumer08<>("device_activity_stream", new JSONKeyValueDeserializationSchema(false), properties).setStartFromEarliest());
 
         // messageStream.filter((FilterFunction) jsonNode -> ( jsonNode.get("temp").asInt() >= 0)).writeAsText("out.txt").setParallelism(1);
-        messageStream.map((MapFunction) x -> (x.get("temp").asInt().toString())).writeAsText("out.txt").setParallelism(1);;
+        messageStream.keyBy("Temp").map((MapFunction) node -> (node)).writeAsText("out.txt").setParallelism(1);;
         env.execute("JSON example");
 
     }
