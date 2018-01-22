@@ -18,10 +18,9 @@ public class sensorStream {
         // only required for Kafka 0.8
         properties.setProperty("zookeeper.connect", "localhost:2181");
         properties.setProperty("group.id", "group1");
-        properties.setProperty("auto.offset.reset", "smallest");
 
         // create a stream of sensor readings
-        DataStream<ObjectNode> messageStream = env.addSource(new FlinkKafkaConsumer08<>("device_activity_stream", new JSONDeserializationSchema(), properties));
+        DataStream<ObjectNode> messageStream = env.addSource(new FlinkKafkaConsumer08<>("device_activity_stream", new JSONDeserializationSchema(), properties).setStartFromEarliest());
 
         // messageStream.filter((FilterFunction) jsonNode -> ( jsonNode.get("temp").asInt() >= 0)).writeAsText("out.txt").setParallelism(1);
         messageStream.map((MapFunction) x -> (x.getClass().toString())).writeAsText("out.txt").setParallelism(1);;
