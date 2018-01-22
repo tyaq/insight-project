@@ -56,8 +56,6 @@
     <orderEntry type="library" name="Maven: org.apache.sling:org.apache.sling.commons.json:2.0.6" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-log4j12:1.7.7" level="project" />
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.17" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.flink:flink-connector-wikiedits_2.11:1.4.0" level="project" />
-    <orderEntry type="library" name="Maven: org.schwering:irclib:1.10" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-connector-kafka-0.8_2.11:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-connector-kafka-base_2.11:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.kafka:kafka_2.11:0.8.2.2" level="project" />
