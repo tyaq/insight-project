@@ -38,13 +38,13 @@ public class sensorStream {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         //defrost detection
-        messageStream.filter((FilterFunction<ObjectNode>) node -> node.get("temp").asInt() >= 0)
+        messageStream.rebalance().filter((FilterFunction<ObjectNode>) node -> node.get("temp").asInt() >= 0)
             .map((MapFunction<ObjectNode, String>) node -> node.get("device_id")+": "+node.get("temp"))
             .writeAsText("defrost.txt")
             .setParallelism(1);
 
         //Door Open
-        messageStream.map((MapFunction<ObjectNode, String>) node -> node.get("device_id")+": "+node.get("kws")).writeAsText("door.txt").setParallelism(1);
+        messageStream.rebalance().map((MapFunction<ObjectNode, String>) node -> node.get("device_id")+": "+node.get("kws")).writeAsText("door.txt").setParallelism(1);
 
         env.execute("JSON example");
 
