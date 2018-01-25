@@ -6,24 +6,31 @@ from kafka.client import KafkaClient
 from kafka.producer import KafkaProducer
 import json
 
+EPOCH = datetime.utcfromtimestamp(0)
+
 class Producer(object):
 
     def __init__(self, addr):
         self.producer = KafkaProducer(bootstrap_servers=addr)
 
+    def unix_time_mills(self, time):
+        return (time - EPOCH).total_seconds() * 1000.0
+
     def produce_msgs(self, source_symbol):
         seed = random.seed(a=42) #subset of the total volume of discogs releases w/ complete metadata
         msg_cnt = 0
-        user_counter=1
+        user_counter = 1
         while True:
-            time_field = datetime.now().strftime("%Y%m%d %H%M%S")
+            time_field = self.unix_time_mills(datetime.now())
             device_id='device'+str(user_counter) #device IDs
-            temp = random.randint(-20,10)
-            kws = random.randint(200,600)/3600
+            temp = random.uniform(-20,10)
+            kws = random.uniform(200,600)/3600
             message_info = json.dumps({ "time":time_field,
-                                          "device_id":device_id,
-                                          "temp":temp,
-                                          "kws":kws })
+                                        "device-id":device_id,
+                                        "sensor-name-1":"temp",
+                                        "sensor-value-1":temp,
+                                        "sensor-name-2":"kws",
+                                        "sensor-value-2":kws})
             print message_info
             self.producer.send('device_activity_stream', message_info)
             msg_cnt += 1

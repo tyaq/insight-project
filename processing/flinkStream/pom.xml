@@ -90,6 +90,11 @@
         <artifactId>flink-streaming-java_2.11</artifactId>
         <version>${flink.version}</version>
     </dependency>
+    <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-cep_2.11</artifactId>
+        <version>${flink.version}</version>
+    </dependency>
 
     <!-- explicitly add a standard logging framework, as Flink does not have
         a hard dependency on one specific framework by default -->
