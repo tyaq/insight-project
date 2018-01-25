@@ -73,19 +73,19 @@ public class sensorStream {
       @Override
       public DeviceMessage map(ObjectNode node) throws Exception {
         String deviceID = node.get("device-id").toString();
-        Long timestamp = Long.parseLong(node.get("time").toString());
+        Float timestamp = Float.parseFloat(node.get("time").toString());
         String sensorName1 = node.get("sensor-name-1").toString();
-        Long sensorValue1 = Long.parseLong(node.get("sensor-value-1").toString());
+        Float sensorValue1 = Float.parseFloat(node.get("sensor-value-1").toString());
         String sensorName2 = node.get("sensor-name-2").toString();
-        Long sensorValue2 = Long.parseLong(node.get("sensor-value-2").toString());
+        Float sensorValue2 = Float.parseFloat(node.get("sensor-value-2").toString());
 
         return new DeviceMessage(deviceID,timestamp,sensorName1,sensorValue1,sensorName2,sensorValue2);
       }
     }
 
-    public static class DeviceMessage extends Tuple6<String,Long,String,Long,String,Long> {
-        DeviceMessage(String deviceID,Long timestamp,String sensorName1,Long sensorValue1,String sensorName2,Long sensorValue2) {
-          new Tuple6<String,Long,String,Long,String,Long>(deviceID,timestamp,sensorName1,sensorValue1,sensorName2,sensorValue2);
+    public static class DeviceMessage extends Tuple6<String,Float,String,Float,String,Float> {
+        DeviceMessage(String deviceID,Float timestamp,String sensorName1,Float sensorValue1,String sensorName2,Float sensorValue2) {
+          new Tuple6<String,Float,String,Float,String,Float>(deviceID,timestamp,sensorName1,sensorValue1,sensorName2,sensorValue2);
         }
     }
 }
