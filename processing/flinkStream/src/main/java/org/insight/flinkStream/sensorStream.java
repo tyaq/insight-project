@@ -39,7 +39,7 @@ public class sensorStream {
         env.getConfig().setLatencyTrackingInterval(10);
 
         // create a stream of sensor readings
-        DataStream<DeviceMessage> messageStream = env.addSource(
+        DataStream<Tuple6<String,Float,String,Float,String,Float>> messageStream = env.addSource(
             new FlinkKafkaConsumer08<>(
                 "device_activity_stream",
                 new JSONDeserializationSchema(),
@@ -59,8 +59,8 @@ public class sensorStream {
         */
 
         //defrost detection
-        messageStream.rebalance().keyBy("f0").filter((FilterFunction<DeviceMessage>) node -> node.f3 >= 0)
-            .map((MapFunction<DeviceMessage, String>) node -> node.f0+": "+node.f3)
+        messageStream.rebalance().keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
+            .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, String>) node -> node.f0+": "+node.f3)
             .writeAsText("defrost.txt")
             .setParallelism(1);
 
@@ -68,10 +68,10 @@ public class sensorStream {
 
     }
 
-    public static class DeviceMessageMap extends RichMapFunction<ObjectNode,DeviceMessage> {
+    public static class DeviceMessageMap extends RichMapFunction<ObjectNode,Tuple6<String,Float,String,Float,String,Float>> {
 
       @Override
-      public DeviceMessage map(ObjectNode node) throws Exception {
+      public Tuple6<String,Float,String,Float,String,Float> map(ObjectNode node) throws Exception {
         String deviceID = node.get("device-id").toString();
         Float timestamp = Float.parseFloat(node.get("time").toString());
         String sensorName1 = node.get("sensor-name-1").toString();
@@ -79,13 +79,8 @@ public class sensorStream {
         String sensorName2 = node.get("sensor-name-2").toString();
         Float sensorValue2 = Float.parseFloat(node.get("sensor-value-2").toString());
 
-        return new DeviceMessage(deviceID,timestamp,sensorName1,sensorValue1,sensorName2,sensorValue2);
+        return new Tuple6<String,Float,String,Float,String,Float>(deviceID,timestamp,sensorName1,sensorValue1,sensorName2,sensorValue2);
       }
     }
 
-    public static class DeviceMessage extends Tuple6<String,Float,String,Float,String,Float> {
-        DeviceMessage(String deviceID,Float timestamp,String sensorName1,Float sensorValue1,String sensorName2,Float sensorValue2) {
-          new Tuple6<String,Float,String,Float,String,Float>(deviceID,timestamp,sensorName1,sensorValue1,sensorName2,sensorValue2);
-        }
-    }
 }
