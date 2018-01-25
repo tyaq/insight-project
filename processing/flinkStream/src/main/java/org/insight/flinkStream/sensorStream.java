@@ -1,25 +1,27 @@
 package org.insight.flinkStream;
 
-import com.google.gson.Gson;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
-import org.apache.flink.api.common.time.Time;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple6;
+import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
+import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.IngestionTimeExtractor;
+import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer08;
 import org.apache.flink.streaming.util.serialization.JSONDeserializationSchema;
 import org.apache.flink.cep.CEP;
-import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.util.Properties;
+import org.apache.flink.util.Collector;
 
 public class sensorStream {
     public static void main(String[] args) throws Exception {
@@ -46,8 +48,17 @@ public class sensorStream {
                 properties)
                 .setStartFromEarliest())
             .map(new DeviceMessageMap())
-            .assignTimestampsAndWatermarks(new IngestionTimeExtractor<>())
+            .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<Tuple6<String,Float,String,Float,String,Float>>() {
+
+              @Override
+              public long extractAscendingTimestamp(Tuple6<String,Float,String,Float,String,Float> node) {
+                return node.f1.longValue();
+              }
+            })
             .name("Kafka Topic: device_activity_stream");
+
+        final int TEMPERATURE_WARNING_THRESHOLD = -15;
+        final int DEFROST_THRESHOLD = 0;
 
         /* Legend
         f0: String deviceID
@@ -63,6 +74,67 @@ public class sensorStream {
             .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, String>) node -> node.f0+": "+node.f3)
             .writeAsText("defrost.txt")
             .setParallelism(1);
+
+      // Warning pattern: Two consecutive temperature events whose temperature is higher than the given threshold
+      // appearing within a time interval of 10 seconds
+      Pattern<Tuple6<String,Float,String,Float,String,Float>, ?> warningPattern = Pattern.<Tuple6<String,Float,String,Float,String,Float>>begin("first")
+          .where(new IterativeCondition<Tuple6<String,Float,String,Float,String,Float>>() {
+
+            @Override
+            public boolean filter(Tuple6<String,Float,String,Float,String,Float> node, Context<Tuple6<String,Float,String,Float,String,Float>> ctx) throws Exception {
+              return node.f3.floatValue() >= TEMPERATURE_WARNING_THRESHOLD;
+            }
+          })
+          .next("second")
+          .where(new IterativeCondition<Tuple6<String,Float,String,Float,String,Float>>() {
+
+            @Override
+            public boolean filter(Tuple6<String,Float,String,Float,String,Float> node, Context<Tuple6<String,Float,String,Float,String,Float>> ctx) throws Exception {
+              return node.f3.floatValue() >= TEMPERATURE_WARNING_THRESHOLD;
+            }
+          })
+          .within(Time.seconds(10));
+
+      // Create a pattern stream from our warning pattern
+      PatternStream<Tuple6<String,Float,String,Float,String,Float>> tempPatternStream = CEP.pattern(
+          messageStream.keyBy("f0"),
+          warningPattern);
+
+      // Generate temperature warnings for each matched warning pattern
+      DataStream<Tuple2<String,Float>> warnings = tempPatternStream.select(
+          (Map<String, List<Tuple6<String,Float,String,Float,String,Float>>> pattern) -> {
+            Tuple6<String,Float,String,Float,String,Float> first = (Tuple6<String,Float,String,Float,String,Float>) pattern.get("first").get(0);
+            Tuple6<String,Float,String,Float,String,Float> second = (Tuple6<String,Float,String,Float,String,Float>) pattern.get("second").get(0);
+
+            return new Tuple2<String,Float>(first.f0,(first.f3.floatValue() + second.f3.floatValue()) / 2);
+          }
+      );
+
+      // Alert pattern: Two consecutive temperature warnings appearing within a time interval of 20 seconds
+      Pattern<Tuple2<String,Float>, ?> alertPattern = Pattern.<Tuple2<String,Float>>begin("first")
+          .next("second")
+          .within(Time.seconds(20));
+
+      // Create a pattern stream from our alert pattern
+      PatternStream<Tuple2<String,Float>> alertPatternStream = CEP.pattern(
+          warnings.keyBy("f0"),
+          alertPattern);
+
+      // Generate a temperature alert only iff the second temperature warning's average temperature is higher than
+      // first warning's temperature
+      DataStream<Tuple2<String,Float>> alerts = alertPatternStream.flatSelect(
+          (Map<String, List<Tuple2<String,Float>>> pattern, Collector<Tuple2<String,Float>> out) -> {
+            Tuple2<String,Float> first = pattern.get("first").get(0);
+            Tuple2<String,Float> second = pattern.get("second").get(0);
+
+            if (first.f1.floatValue() < second.f1.floatValue()) {
+              out.collect(new Tuple2<String,Float>(first.f0,second.f1));
+            }
+          });
+
+      // Print the warning and alert events to stdout
+      warnings.print();
+      alerts.print();
 
       env.execute("JSON example");
 
