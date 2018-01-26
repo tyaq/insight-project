@@ -1,5 +1,6 @@
 package org.insight.flinkStream;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.apache.flink.api.common.functions.FilterFunction;
@@ -40,13 +41,12 @@ public class sensorStream {
         //Monitor latency
         env.getConfig().setLatencyTrackingInterval(10);
 
-        // create a stream of sensor readings
+        // create a stream of sensor readings //.setStartFromEarliest())
         DataStream<Tuple6<String,Float,String,Float,String,Float>> messageStream = env.addSource(
             new FlinkKafkaConsumer08<>(
                 "device_activity_stream",
                 new JSONDeserializationSchema(),
-                properties)
-                .setStartFromEarliest())
+                properties))
             .map(new DeviceMessageMap())
             .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<Tuple6<String,Float,String,Float,String,Float>>() {
 
@@ -75,9 +75,12 @@ public class sensorStream {
             .writeAsText("defrost.txt")
             .setParallelism(1);
 
+
+        //Door Open Detection
+        //Warning Pattern: Temp Rising and Energy Rising
       // Warning pattern: Two consecutive temperature events whose temperature is higher than the given threshold
       // appearing within a time interval of 10 seconds
-      Pattern<Tuple6<String,Float,String,Float,String,Float>, ?> warningPattern = Pattern.<Tuple6<String,Float,String,Float,String,Float>>begin("first")
+      Pattern<Tuple6<String,Float,String,Float,String,Float>, ?> doorTempWarningPattern = Pattern.<Tuple6<String,Float,String,Float,String,Float>>begin("first")
           .where(new IterativeCondition<Tuple6<String,Float,String,Float,String,Float>>() {
 
             @Override
@@ -98,7 +101,7 @@ public class sensorStream {
       // Create a pattern stream from our warning pattern
       PatternStream<Tuple6<String,Float,String,Float,String,Float>> tempPatternStream = CEP.pattern(
           messageStream.keyBy("f0"),
-          warningPattern);
+          doorTempWarningPattern);
 
       // Generate temperature warnings for each matched warning pattern
       DataStream<Tuple2<String,Float>> warnings = tempPatternStream.select(
@@ -111,18 +114,18 @@ public class sensorStream {
       );
 
       // Alert pattern: Two consecutive temperature warnings appearing within a time interval of 20 seconds
-      Pattern<Tuple2<String,Float>, ?> alertPattern = Pattern.<Tuple2<String,Float>>begin("first")
+      Pattern<Tuple2<String,Float>, ?> tempAlertPattern = Pattern.<Tuple2<String,Float>>begin("first")
           .next("second")
           .within(Time.seconds(20));
 
       // Create a pattern stream from our alert pattern
-      PatternStream<Tuple2<String,Float>> alertPatternStream = CEP.pattern(
+      PatternStream<Tuple2<String,Float>> tempAlertPatternStream = CEP.pattern(
           warnings.keyBy("f0"),
-          alertPattern);
+          tempAlertPattern);
 
       // Generate a temperature alert only iff the second temperature warning's average temperature is higher than
       // first warning's temperature
-      DataStream<Tuple2<String,Float>> alerts = alertPatternStream.flatSelect(
+      DataStream<Tuple2<String,Float>> alerts = tempAlertPatternStream.flatSelect(
           (Map<String, List<Tuple2<String,Float>>> pattern, Collector<Tuple2<String,Float>> out) -> {
             Tuple2<String,Float> first = pattern.get("first").get(0);
             Tuple2<String,Float> second = pattern.get("second").get(0);
@@ -133,8 +136,19 @@ public class sensorStream {
           });
 
       // Print the warning and alert events to stdout
-      warnings.print();
-      alerts.print();
+      //warnings.print();
+      //alerts.print();
+
+      messageStream.map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Float>) node -> (System.currentTimeMillis() - node.f1.floatValue()))
+          .flatMap((Float latency, Collector<Tuple2<Float, Integer>> out) -> {
+            // emit the pairs with non-zero-length words
+            out.collect(new Tuple2<>(latency, 1));
+          })
+          // group by the tuple field "0" and sum up tuple field "1"
+          .keyBy(0)
+          .sum(1)
+          .writeAsCsv("latency.csv");
+
 
       env.execute("JSON example");
 
