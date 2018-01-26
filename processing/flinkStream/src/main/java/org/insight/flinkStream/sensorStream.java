@@ -139,10 +139,10 @@ public class sensorStream {
       //warnings.print();
       //alerts.print();
 
-      messageStream.map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Float>) node -> (System.currentTimeMillis() - node.f1.floatValue()))
+      messageStream.map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Float>) node -> ((float) System.currentTimeMillis() - node.f1.floatValue()))
           .flatMap((Float latency, Collector<Tuple2<Float, Integer>> out) -> {
             // emit the pairs with non-zero-length words
-            out.collect(new Tuple2<>(latency, 1));
+            out.collect(new Tuple2<>(latency.floatValue(), 1));
           })
           // group by the tuple field "0" and sum up tuple field "1"
           .keyBy(0)
