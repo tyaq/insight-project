@@ -6,6 +6,8 @@ import java.util.Map;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.api.java.io.jdbc.JDBCAppendTableSink;
+import org.apache.flink.api.java.io.jdbc.JDBCOutputFormat;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple6;
 import org.apache.flink.cep.PatternStream;
@@ -23,6 +25,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.util.Properties;
 import org.apache.flink.util.Collector;
+import org.insight.flinkStream.Config;
 
 public class sensorStream {
     public static void main(String[] args) throws Exception {
@@ -70,10 +73,9 @@ public class sensorStream {
         */
 
         //defrost detection
-        messageStream.rebalance().keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
-            .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, String>) node -> node.f0+": "+node.f3)
-            .writeAsText("defrost.txt")
-            .setParallelism(1);
+        messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
+            .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0,Boolean.TRUE))
+            .map(new OutputToDefrostStatusMap());
 
 
         //Door Open Detection
@@ -139,17 +141,6 @@ public class sensorStream {
       //warnings.print();
       //alerts.print();
 
-      messageStream.map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Float>) node -> ((float) System.currentTimeMillis() - node.f1.floatValue()))
-          .flatMap((Float latency, Collector<Tuple2<Float, Integer>> out) -> {
-            // emit the pairs with non-zero-length words
-            out.collect(new Tuple2<>(latency.floatValue(), 1));
-          })
-          // group by the tuple field "0" and sum up tuple field "1"
-          .keyBy(0)
-          .sum(1)
-          .writeAsText("latency.txt");
-
-
       env.execute("JSON example");
 
     }
@@ -168,5 +159,23 @@ public class sensorStream {
         return new Tuple6<String,Float,String,Float,String,Float>(deviceID,timestamp,sensorName1,sensorValue1,sensorName2,sensorValue2);
       }
     }
+
+
+  public static class OutputToDefrostStatusMap implements MapFunction<Tuple2<String, Boolean>, Tuple2<String, Boolean>> {
+    @Override
+    public Tuple2<String, Boolean> map(Tuple2<String, Boolean> in) {
+
+      String query = String.format("INSERT INTO defrostStatus (deviceID, defrosted)\n"
+          + "    VALUES (%s', %b);",in.f0,in.f1);
+
+      JDBCOutputFormat jdbcOutput = JDBCOutputFormat.buildJDBCOutputFormat()
+          .setDrivername("org.postgresql.Driver")
+          .setDBUrl(Config.DBURL)
+          .setQuery(query)
+          .finish();
+
+      return in;
+    }
+  }
 
 }
