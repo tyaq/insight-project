@@ -3,6 +3,7 @@ package org.insight.flinkStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.collections.bag.SynchronizedSortedBag;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
@@ -171,9 +172,12 @@ public class sensorStream {
       JDBCOutputFormat jdbcOutput = JDBCOutputFormat.buildJDBCOutputFormat()
           .setDrivername("org.postgresql.Driver")
           .setDBUrl(Config.DBURL)
+          .setUsername(Config.USER)
+          .setPassword(Config.PASS)
           .setQuery(query)
+          .setBatchInterval(128)
           .finish();
-
+      System.out.println(jdbcOutput);
       return in;
     }
   }
