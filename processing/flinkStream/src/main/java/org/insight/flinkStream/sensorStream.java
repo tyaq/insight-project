@@ -18,6 +18,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.Obje
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer08;
 import org.apache.flink.streaming.util.serialization.JSONDeserializationSchema;
@@ -25,7 +26,10 @@ import org.apache.flink.cep.CEP;
 import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.util.Properties;
+import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
+import java.sql.Types;
+
 import org.insight.flinkStream.Config;
 
 public class sensorStream {
@@ -76,7 +80,13 @@ public class sensorStream {
         //defrost detection
         messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
             .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0,Boolean.TRUE))
-            .map(new OutputToDefrostStatusMap());
+        .map((MapFunction<Tuple2<String,Boolean>, Row>) node -> {
+          Row row = new Row(2); // our prepared statement has 2 parameters
+          row.setField(0, node.f0);
+          row.setField(1, node.f1);
+          row.setField(2, node.f1);
+          return row;
+        }).writeUsingOutputFormat(createJDBCSink());
 
 
         //Door Open Detection
@@ -162,24 +172,34 @@ public class sensorStream {
     }
 
 
-  public static class OutputToDefrostStatusMap implements MapFunction<Tuple2<String, Boolean>, Tuple2<String, Boolean>> {
-    @Override
-    public Tuple2<String, Boolean> map(Tuple2<String, Boolean> in) {
-
-      String query = String.format("INSERT INTO defrostStatus (deviceID, defrosted)\n"
-          + "    VALUES (%s', %b);",in.f0,in.f1);
-
-      JDBCOutputFormat jdbcOutput = JDBCOutputFormat.buildJDBCOutputFormat()
-          .setDrivername("org.postgresql.Driver")
-          .setDBUrl(Config.DBURL)
-          .setUsername(Config.USER)
-          .setPassword(Config.PASS)
-          .setQuery(query)
-          .setBatchInterval(128)
-          .finish();
-      System.out.println(jdbcOutput);
-      return in;
-    }
+//  public static class OutputToDefrostStatusMap implements SinkFunction<Tuple2<String, Boolean>> {
+//    @Override
+//    public Tuple2<String, Boolean> (Tuple2<String, Boolean> in) {
+//
+//      String query = String.format("INSERT INTO defrostStatus (deviceID, defrosted)\n"
+//          + "    VALUES (%s', %b);",in.f0,in.f1);
+//
+//      JDBCOutputFormat jdbcOutput = JDBCOutputFormat.buildJDBCOutputFormat()
+//          .setDrivername("org.postgresql.Driver")
+//          .setDBUrl(Config.DBURL)
+//          .setUsername(Config.USER)
+//          .setPassword(Config.PASS)
+//          .setQuery(query)
+//          .setBatchInterval(128)
+//          .finish();
+//      System.out.println(jdbcOutput);
+//      return in;
+//    }
+//  }
+  private static JDBCOutputFormat createJDBCSink() {
+    return JDBCOutputFormat.buildJDBCOutputFormat()
+        .setDrivername("org.postgresql.Driver")
+        .setDBUrl(Config.DBURL)
+        .setUsername(Config.USER)
+        .setPassword(Config.PASS)
+        .setQuery("INSERT INTO defrostStatus (deviceID, defrosted) VALUES (?,?) ON CONFLICT (deviceID) DO UPDATE SET defrosted=?")
+        .setSqlTypes(new int[] { Types.VARCHAR, Types.FLOAT, Types.FLOAT })
+        .setBatchInterval(128)
+        .finish();
   }
-
 }
