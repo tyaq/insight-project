@@ -21,6 +21,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.connectors.cassandra.CassandraSink;
+import org.apache.flink.streaming.connectors.cassandra.CassandraTupleSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer08;
 import org.apache.flink.streaming.util.serialization.JSONDeserializationSchema;
 import org.apache.flink.cep.CEP;
@@ -82,7 +83,7 @@ public class sensorStream {
         DataStream<Tuple2<String,Boolean>> defrostResult = messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
             .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0,Boolean.TRUE));
 
-      //Update the results to C* sink
+      //Update the results to sink
       CassandraSink.addSink(defrostResult)
           .setQuery("INSERT INTO hyperspace.defrostStatus (deviceID, defrosted) " +
               "values (?, ?);")
