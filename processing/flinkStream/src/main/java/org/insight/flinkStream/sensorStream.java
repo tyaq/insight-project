@@ -84,7 +84,7 @@ public class sensorStream {
           Row row = new Row(2); // our prepared statement has 2 parameters
           row.setField(0, node.f0);
           row.setField(1, node.f1);
-          row.setField(2, node.f1);
+//          row.setField(2, node.f1);
           return row;
         }).writeUsingOutputFormat(createJDBCSink());
 
@@ -197,8 +197,8 @@ public class sensorStream {
         .setDBUrl(Config.DBURL)
         .setUsername(Config.USER)
         .setPassword(Config.PASS)
-        .setQuery("INSERT INTO defrostStatus (deviceID, defrosted) VALUES (?,?) ON CONFLICT (deviceID) DO UPDATE SET defrosted=?")
-        .setSqlTypes(new int[] { Types.VARCHAR, Types.FLOAT, Types.FLOAT })
+        .setQuery("INSERT INTO defrostStatus (deviceID, defrosted) VALUES (?,?)")
+        .setSqlTypes(new int[] { Types.VARCHAR, Types.FLOAT })
         .setBatchInterval(128)
         .finish();
   }
