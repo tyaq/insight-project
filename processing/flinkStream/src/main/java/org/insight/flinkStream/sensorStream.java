@@ -79,7 +79,7 @@ public class sensorStream {
         */
 
         //defrost detection
-        DataStream defrostResult = messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
+        DataStream<Tuple2<String,Boolean>> defrostResult = messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
             .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0,Boolean.TRUE));
 
       //Update the results to C* sink
