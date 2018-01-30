@@ -85,7 +85,7 @@ public class sensorStream {
 
       //Update the results to sink
       CassandraSink.addSink(defrostResult)
-          .setQuery("INSERT INTO hyperspace.defrostStatus (deviceID, defrosted) " +
+          .setQuery("INSERT INTO hypespace.defrostStatus (deviceID, defrosted) " +
               "values (?, ?);")
           .setHost("localhost")
           .build();
