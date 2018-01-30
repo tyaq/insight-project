@@ -20,6 +20,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
+import org.apache.flink.streaming.connectors.cassandra.CassandraSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer08;
 import org.apache.flink.streaming.util.serialization.JSONDeserializationSchema;
 import org.apache.flink.cep.CEP;
@@ -78,15 +79,15 @@ public class sensorStream {
         */
 
         //defrost detection
-        messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
-            .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0,Boolean.TRUE))
-        .map((MapFunction<Tuple2<String,Boolean>, Row>) node -> {
-          Row row = new Row(2); // our prepared statement has 2 parameters
-          row.setField(0, node.f0);
-          row.setField(1, node.f1);
-//          row.setField(2, node.f1);
-          return row;
-        }).writeUsingOutputFormat(createJDBCSink());
+        DataStream defrostResult = messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
+            .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0,Boolean.TRUE));
+
+      //Update the results to C* sink
+      CassandraSink.addSink(defrostResult)
+          .setQuery("INSERT INTO hyperspace.defrostStatus (deviceID, defrosted) " +
+              "values (?, ?);")
+          .setHost("localhost")
+          .build();
 
 
         //Door Open Detection
@@ -191,15 +192,15 @@ public class sensorStream {
 //      return in;
 //    }
 //  }
-  private static JDBCOutputFormat createJDBCSink() {
-    return JDBCOutputFormat.buildJDBCOutputFormat()
-        .setDrivername("org.postgresql.Driver")
-        .setDBUrl(Config.DBURL)
-        .setUsername(Config.USER)
-        .setPassword(Config.PASS)
-        .setQuery("INSERT INTO defrostStatus (deviceID, defrosted) VALUES (?,?)")
-        .setSqlTypes(new int[] { Types.VARCHAR, Types.FLOAT })
-        .setBatchInterval(128)
-        .finish();
-  }
+//  private static JDBCOutputFormat createJDBCSink() {
+//    return JDBCOutputFormat.buildJDBCOutputFormat()
+//        .setDrivername("org.postgresql.Driver")
+//        .setDBUrl(Config.DBURL)
+//        .setUsername(Config.USER)
+//        .setPassword(Config.PASS)
+//        .setQuery("INSERT INTO defrostStatus (deviceID, defrosted) VALUES (?,?)")
+//        .setSqlTypes(new int[] { Types.VARCHAR, Types.FLOAT })
+//        .setBatchInterval(128)
+//        .finish();
+//  }
 }
