@@ -152,7 +152,7 @@ public class sensorStream {
 
       // Print the warning and alert events to stdout
       //warnings.print();
-      //alerts.print();
+      alerts.print();
 
       env.execute("JSON example");
 
