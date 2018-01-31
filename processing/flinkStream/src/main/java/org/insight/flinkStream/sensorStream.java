@@ -157,7 +157,7 @@ public class sensorStream {
       //alerts.print();
 
       //Update the results to sink
-      CassandraSink.addSink(defrostResult)
+      CassandraSink.addSink(alerts)
           .setQuery("INSERT INTO hypespace.doorStatus (deviceID, doorOpen) " +
               "values (?, ?);")
           .setHost("localhost")
