@@ -124,7 +124,7 @@ public class sensorStream {
             Tuple6<String,Float,String,Float,String,Float> first = (Tuple6<String,Float,String,Float,String,Float>) pattern.get("first").get(0);
             Tuple6<String,Float,String,Float,String,Float> second = (Tuple6<String,Float,String,Float,String,Float>) pattern.get("second").get(0);
 
-            return new Tuple2<String,Float>(first.f0,(first.f3.floatValue() + second.f3.floatValue()) / 2);
+            return new Tuple2<String,Float>(first.f0.toString(),(first.f3.floatValue() + second.f3.floatValue()) / 2);
           }
       );
 
@@ -146,9 +146,9 @@ public class sensorStream {
             Tuple2<String,Float> second = pattern.get("second").get(0);
 
             if (first.f1.floatValue() < second.f1.floatValue()) {
-              out.collect(new Tuple2<String,Boolean>(first.f0,Boolean.TRUE));
+              out.collect(new Tuple2<String,Boolean>(first.f0.toString(),Boolean.TRUE));
             } else {
-              out.collect(new Tuple2<String,Boolean>(first.f0,Boolean.FALSE));
+              out.collect(new Tuple2<String,Boolean>(first.f0.toString(),Boolean.FALSE));
             }
           });
 
