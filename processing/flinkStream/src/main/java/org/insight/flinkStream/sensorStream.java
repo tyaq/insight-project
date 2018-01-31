@@ -46,7 +46,7 @@ public class sensorStream {
         properties.setProperty("group.id", "group1");
 
         // Use ingestion time == event time
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        // env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         //Monitor latency
         env.getConfig().setLatencyTrackingInterval(10);
@@ -80,7 +80,7 @@ public class sensorStream {
         */
 
         //defrost detection
-        DataStream<Tuple2<String,Boolean>> defrostResult = messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= 0)
+        DataStream<Tuple2<String,Boolean>> defrostResult = messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= DEFROST_THRESHOLD)
             .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0,Boolean.TRUE));
 
       //Update the results to sink
@@ -147,12 +147,22 @@ public class sensorStream {
 
             if (first.f1.floatValue() < second.f1.floatValue()) {
               out.collect(new Tuple2<String,Boolean>(first.f0,Boolean.TRUE));
+            } else {
+              out.collect(new Tuple2<String,Boolean>(first.f0,Boolean.FALSE));
             }
           });
 
       // Print the warning and alert events to stdout
       //warnings.print();
-      alerts.print();
+      //alerts.print();
+
+      //Update the results to sink
+      CassandraSink.addSink(defrostResult)
+          .setQuery("INSERT INTO hypespace.doorStatus (deviceID, doorOpen) " +
+              "values (?, ?);")
+          .setHost("localhost")
+          .build();
+
 
       env.execute("JSON example");
 
