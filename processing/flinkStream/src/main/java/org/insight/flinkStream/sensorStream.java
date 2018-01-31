@@ -81,7 +81,7 @@ public class sensorStream {
 
         //defrost detection
         DataStream<Tuple2<String,Boolean>> defrostResult = messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= DEFROST_THRESHOLD)
-            .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0,Boolean.TRUE));
+            .map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple2<String,Boolean>>) node -> new Tuple2<String,Boolean>(node.f0.toString(),Boolean.TRUE));
 
       //Update the results to sink
       CassandraSink.addSink(defrostResult)
