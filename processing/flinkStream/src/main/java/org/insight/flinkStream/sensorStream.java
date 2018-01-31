@@ -140,13 +140,13 @@ public class sensorStream {
 
       // Generate a temperature alert only iff the second temperature warning's average temperature is higher than
       // first warning's temperature
-      DataStream<Tuple2<String,Float>> alerts = tempAlertPatternStream.flatSelect(
-          (Map<String, List<Tuple2<String,Float>>> pattern, Collector<Tuple2<String,Float>> out) -> {
+      DataStream<Tuple2<String,Boolean>> alerts = tempAlertPatternStream.flatSelect(
+          (Map<String, List<Tuple2<String,Float>>> pattern, Collector<Tuple2<String,Boolean>> out) -> {
             Tuple2<String,Float> first = pattern.get("first").get(0);
             Tuple2<String,Float> second = pattern.get("second").get(0);
 
             if (first.f1.floatValue() < second.f1.floatValue()) {
-              out.collect(new Tuple2<String,Float>(first.f0,second.f1));
+              out.collect(new Tuple2<String,Boolean>(first.f0,Boolean.TRUE));
             }
           });
 
