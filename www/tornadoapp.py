@@ -16,6 +16,25 @@ application = Application([
 (r".*", FallbackHandler, dict(fallback=tr)),
 ])
 
+class BaseHandler(RequestHandler):
+
+    def set_default_headers(self):
+        print "setting headers!!!"
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+
+    def post(self):
+        self.write('some post')
+
+    def get(self):
+        self.write('some get')
+
+    def options(self):
+        # no body
+        self.set_status(204)
+        self.finish()
+
 if __name__ == "__main__":
  application.listen(80)
  IOLoop.instance().start()
