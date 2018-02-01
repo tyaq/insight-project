@@ -22,19 +22,20 @@ def index():
 
 @app.route('/api/<id>/door')
 def get_door(id):
-       print(id)
-       stmt = "SELECT * FROM doorStatus WHERE deviceID=\"%s\""
+       id='"'+id+'"'
+       stmt = "SELECT * FROM doorStatus WHERE deviceID=%s"
+       print(stmt % id)
        response = session.execute(stmt,parameters=[id])
        response_list = []
        for val in response:
             response_list.append(val)
-       jsonresponse = [{"DeviceID": x.deviceid.decode('string_escape'), "door-open": x.dooropen} for x in response_list]
+       jsonresponse = [{"DeviceID": x.deviceid.replace('\"', ''), "door-open": x.dooropen} for x in response_list]
        return jsonify(doorStatus=jsonresponse)
 
 @app.route('/api/<id>/defrost')
 def get_defrost(id):
        print(id)
-       stmt = "SELECT * FROM defrostStatus WHERE deviceID=\"%s\""
+       stmt = 'SELECT * FROM defrostStatus WHERE deviceID=\"%s\";'
        response = session.execute(stmt,parameters=[id])
        response_list = []
        for val in response:
