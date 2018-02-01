@@ -11,7 +11,7 @@ Scrat is a real-time pipeline to detect events in IoT sensor streams.
 
 ## Overview
 
-As data streams from connected sensors have become ubiquitous it's become challenging to provide real-time analysis. Scrat is a scalable pipeline that detects patterns in streams using Apache Kafka, Flink, and Cassandra. Scrat provides a dashboard to monitor these stream and detected events.
+As data streams from connected sensors have become ubiquitous it's become challenging to provide real-time analysis. Scrat is a scalable pipeline that detects patterns in streams using Apache Kafka, Flink, and Cassandra. Scrat provides a dashboard to monitor these stream and show detected events.
 
 ## Installation
 

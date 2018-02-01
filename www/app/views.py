@@ -34,11 +34,12 @@ def get_door(id):
 
 @app.route('/api/<id>/defrost')
 def get_defrost(id):
-       print(id)
-       stmt = 'SELECT * FROM defrostStatus WHERE deviceID=\"%s\";'
+       id='"'+id+'"'
+       stmt = "SELECT * FROM defrostStatus WHERE deviceID=%s"
+       print(stmt % id)
        response = session.execute(stmt,parameters=[id])
        response_list = []
        for val in response:
             response_list.append(val)
-       jsonresponse = [{"DeviceID": x.deviceid.decode('string_escape'), "defrosted": x.defrosted} for x in response_list]
-       return jsonify(doorStatus=jsonresponse)
+       jsonresponse = [{"DeviceID": x.deviceid.replace('\"', ''), "defrosted": x.defrosted} for x in response_list]
+       return jsonify(defrostStatus=jsonresponse)
