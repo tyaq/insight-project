@@ -163,6 +163,11 @@ public class sensorStream {
           .setHost("localhost")
           .build();
 
+      //Efficiency
+      //calculate work
+      DataStream<Tuple6<String,Float,String,Float,String,Float>> work = messageStream.keyBy("f0").timeWindow(Time.seconds(30), Time.seconds(1)).sum(1);
+
+      work.print();
 
       env.execute("JSON example");
 

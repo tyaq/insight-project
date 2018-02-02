@@ -2,7 +2,8 @@ import random
 import sys
 import six
 from datetime import datetime
-from pykafka import KafkaClient
+from kafka.client import KafkaClient
+from kafka.producer import KafkaProducer
 import json
 
 EPOCH = datetime.utcfromtimestamp(0)
@@ -10,15 +11,13 @@ EPOCH = datetime.utcfromtimestamp(0)
 class Producer(object):
 
     def __init__(self, addr):
-        self.client = KafkaClient(addr)
-        self.topic = self.client.topics['device_activity_stream']
-        self.producer = self.topic.get_producer()
+        self.producer = KafkaProducer(bootstrap_servers=addr)
 
     def unix_time_mills(self, time):
         return (time - EPOCH).total_seconds() * 1000.0
 
     def produce_msgs(self, source_symbol):
-        seed = random.seed(a=42) #subset of the total volume of discogs releases w/ complete metadata
+        seed = random.seed(a=42)
         msg_cnt = 0
         user_counter = 1
         while True:
@@ -33,7 +32,7 @@ class Producer(object):
                                         "sensor-name-2":"kws",
                                         "sensor-value-2":kws})
             print message_info
-            self.producer.produce(message_info)
+            self.producer.send('device_activity_stream', message_info)
             msg_cnt += 1
             user_counter += 1
             if user_counter%10==0:
