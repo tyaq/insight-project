@@ -20,26 +20,25 @@ session = cluster.connect('hypespace')
 def index():
   return "Hello, World!"
 
-@app.route('/api/<id>/door')
+@app.route('/api/status')
+def get_status():
+       stmt = "SELECT * FROM status"
+       print(stmt)
+       response = session.execute(stmt,parameters=[id])
+       response_list = []
+       for val in response:
+            response_list.append(val)
+       jsonresponse = [{"deviceID": x.deviceid.replace('\"', ''), "door-open": x.dooropen, "defrosted": x.defrosted, "efficiency": x.efficiency} for x in response_list]
+       return jsonify(status=jsonresponse)
+
+@app.route('/api/status/<id>')
 def get_door(id):
        id='"'+id+'"'
-       stmt = "SELECT * FROM doorStatus WHERE deviceID=%s"
+       stmt = "SELECT * FROM status WHERE deviceID=%s"
        print(stmt % id)
        response = session.execute(stmt,parameters=[id])
        response_list = []
        for val in response:
             response_list.append(val)
-       jsonresponse = [{"DeviceID": x.deviceid.replace('\"', ''), "door-open": x.dooropen} for x in response_list]
-       return jsonify(doorStatus=jsonresponse)
-
-@app.route('/api/<id>/defrost')
-def get_defrost(id):
-       id='"'+id+'"'
-       stmt = "SELECT * FROM defrostStatus WHERE deviceID=%s"
-       print(stmt % id)
-       response = session.execute(stmt,parameters=[id])
-       response_list = []
-       for val in response:
-            response_list.append(val)
-       jsonresponse = [{"DeviceID": x.deviceid.replace('\"', ''), "defrosted": x.defrosted} for x in response_list]
-       return jsonify(defrostStatus=jsonresponse)
+       jsonresponse = [{"deviceID": x.deviceid.replace('\"', ''), "door-open": x.dooropen, "defrosted": x.defrosted, "efficiency": x.efficiency} for x in response_list]
+       return jsonify(status=jsonresponse)
