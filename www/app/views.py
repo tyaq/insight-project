@@ -42,3 +42,15 @@ def get_door(id):
             response_list.append(val)
        jsonresponse = [{"deviceID": x.deviceid.replace('\"', ''), "door-open": x.dooropen, "defrosted": x.defrosted, "efficiency": x.efficiency} for x in response_list]
        return jsonify(status=jsonresponse)
+
+@app.route('/api/timeline/<id>')
+def get_status():
+       stmt = "SELECT * FROM timeline WHERE deviceID=%s"
+       print(stmt)
+       response = session.execute(stmt,parameters=[id])
+       response_list = []
+       for val in response:
+            response_list.append(val)
+       jsonresponse = [{"deviceID": x.deviceid.replace('\"', ''), "time_stamp": x.time_stamp, "sensorName1": x.sensorName1, "sensorValue1": x.sensorValue1, "sensorName2": x.sensorName2, "sensorValue2": x.sensorValue2,} for x in response_list]
+       return jsonify(status=jsonresponse)
+
