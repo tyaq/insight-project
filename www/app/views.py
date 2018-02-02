@@ -44,7 +44,7 @@ def get_door(id):
        return jsonify(status=jsonresponse)
 
 @app.route('/api/timeline/<id>')
-def get_status():
+def get_timeline(id):
        stmt = "SELECT * FROM timeline WHERE deviceID=%s"
        print(stmt)
        response = session.execute(stmt,parameters=[id])
