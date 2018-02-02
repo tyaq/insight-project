@@ -24,7 +24,7 @@ def index():
 def get_status():
        stmt = "SELECT * FROM status"
        print(stmt)
-       response = session.execute(stmt,parameters=[id])
+       response = session.execute(stmt)
        response_list = []
        for val in response:
             response_list.append(val)
