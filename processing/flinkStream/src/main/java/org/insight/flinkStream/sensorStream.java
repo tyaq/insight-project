@@ -1,15 +1,20 @@
 package org.insight.flinkStream;
 
+import static java.lang.Math.abs;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections.bag.SynchronizedSortedBag;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.java.io.jdbc.JDBCAppendTableSink;
 import org.apache.flink.api.java.io.jdbc.JDBCOutputFormat;
+import org.apache.flink.api.java.tuple.Tuple13;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple6;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
@@ -35,7 +40,10 @@ import java.sql.Types;
 import org.insight.flinkStream.Config;
 
 public class sensorStream {
-    public static void main(String[] args) throws Exception {
+
+  private Tuple13 node;
+
+  public static void main(String[] args) throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -165,9 +173,20 @@ public class sensorStream {
 
       //Efficiency
       //calculate work
-      DataStream<Tuple6<String,Float,String,Float,String,Float>> work = messageStream.keyBy("f0").timeWindow(Time.seconds(30), Time.seconds(1)).sum("f3");
+      DataStream<Tuple6<String,Float,String,Float,String,Float>> work = messageStream.keyBy("f0").timeWindow(Time.seconds(30), Time.seconds(1)).sum("f5").keyBy("f0");
+    //calculate delta t
+    DataStream<Tuple2<String, Float>> efficiency = work.map((MapFunction<Tuple6<String,Float,String,Float,String,Float>, Tuple3<String,Float,Float>>) node -> new Tuple3<String,Float,Float>( node.f0 ,node.f3, node.f5)).keyBy("f0")
+          .reduce(new ReduceFunction<Tuple3<String, Float, Float>>() {
 
-      work.print();
+            @Override
+            public Tuple3<String, Float, Float> reduce(Tuple3<String, Float, Float> v1, Tuple3<String, Float, Float> v2) throws Exception {
+              return new Tuple3<String, Float, Float>(v1.f0.toString(), abs(v1.f1.floatValue() - v2.f1.floatValue())/v2.f2.floatValue(), Float.parseFloat("0"));
+            }
+
+            ;
+          }).map((MapFunction<Tuple3<String, Float, Float>, Tuple2<String, Float>>) node -> new Tuple2<String, Float>(node.f0.toString(),node.f1.floatValue()));;
+      //
+      efficiency.print();
 
       env.execute("JSON example");
 
