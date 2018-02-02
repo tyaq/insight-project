@@ -93,7 +93,7 @@ public class sensorStream {
 
       //Update the results to sink
       CassandraSink.addSink(defrostResult)
-          .setQuery("INSERT INTO hypespace.defrostStatus (deviceID, defrosted) " +
+          .setQuery("INSERT INTO hypespace.status (deviceID, defrosted) " +
               "values (?, ?);")
           .setHost("localhost")
           .build();
@@ -166,7 +166,7 @@ public class sensorStream {
 
       //Update the results to sink
       CassandraSink.addSink(alerts)
-          .setQuery("INSERT INTO hypespace.doorStatus (deviceID, doorOpen) " +
+          .setQuery("INSERT INTO hypespace.status (deviceID, doorOpen) " +
               "values (?, ?);")
           .setHost("localhost")
           .build();
@@ -184,9 +184,14 @@ public class sensorStream {
             }
 
             ;
-          }).map((MapFunction<Tuple3<String, Float, Float>, Tuple2<String, Float>>) node -> new Tuple2<String, Float>(node.f0.toString(),node.f1.floatValue()));;
-      //
-      efficiency.print();
+          }).map((MapFunction<Tuple3<String, Float, Float>, Tuple2<String, Float>>) node -> new Tuple2<String, Float>(node.f0.toString(),100*node.f1.floatValue()));;
+
+    //Update the results to sink
+    CassandraSink.addSink(efficiency)
+        .setQuery("INSERT INTO hypespace.status (deviceID, efficiency) " +
+            "values (?, ?);")
+        .setHost("localhost")
+        .build();
 
       env.execute("JSON example");
 
