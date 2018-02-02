@@ -41,8 +41,6 @@ import org.insight.flinkStream.Config;
 
 public class sensorStream {
 
-  private Tuple13 node;
-
   public static void main(String[] args) throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -77,7 +75,6 @@ public class sensorStream {
 
         final int TEMPERATURE_WARNING_THRESHOLD = -15;
         final int DEFROST_THRESHOLD = 0;
-
         /* Legend
         f0: String deviceID
         f1: Long timestamp
@@ -86,6 +83,12 @@ public class sensorStream {
         f4: String sensorName2 (kw)
         f5: Long sensorValue2 (kw)
         */
+
+        CassandraSink.addSink(messageStream)
+        .setQuery("INSERT INTO hypespace.timeline (deviceID, time_stamp,sensorName1,sensorValue1,sensorName2,sensorValue2) " +
+            "values (?, ?, ?, ?, ?, ?);")
+        .setHost("localhost")
+        .build();
 
         //defrost detection
         DataStream<Tuple2<String,Boolean>> defrostResult = messageStream.keyBy("f0").filter((FilterFunction<Tuple6<String,Float,String,Float,String,Float>>) node -> node.f3 >= DEFROST_THRESHOLD)
@@ -211,36 +214,4 @@ public class sensorStream {
         return new Tuple6<String,Float,String,Float,String,Float>(deviceID,timestamp,sensorName1,sensorValue1,sensorName2,sensorValue2);
       }
     }
-
-
-//  public static class OutputToDefrostStatusMap implements SinkFunction<Tuple2<String, Boolean>> {
-//    @Override
-//    public Tuple2<String, Boolean> (Tuple2<String, Boolean> in) {
-//
-//      String query = String.format("INSERT INTO defrostStatus (deviceID, defrosted)\n"
-//          + "    VALUES (%s', %b);",in.f0,in.f1);
-//
-//      JDBCOutputFormat jdbcOutput = JDBCOutputFormat.buildJDBCOutputFormat()
-//          .setDrivername("org.postgresql.Driver")
-//          .setDBUrl(Config.DBURL)
-//          .setUsername(Config.USER)
-//          .setPassword(Config.PASS)
-//          .setQuery(query)
-//          .setBatchInterval(128)
-//          .finish();
-//      System.out.println(jdbcOutput);
-//      return in;
-//    }
-//  }
-//  private static JDBCOutputFormat createJDBCSink() {
-//    return JDBCOutputFormat.buildJDBCOutputFormat()
-//        .setDrivername("org.postgresql.Driver")
-//        .setDBUrl(Config.DBURL)
-//        .setUsername(Config.USER)
-//        .setPassword(Config.PASS)
-//        .setQuery("INSERT INTO defrostStatus (deviceID, defrosted) VALUES (?,?)")
-//        .setSqlTypes(new int[] { Types.VARCHAR, Types.FLOAT })
-//        .setBatchInterval(128)
-//        .finish();
-//  }
 }
