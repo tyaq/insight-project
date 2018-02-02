@@ -52,6 +52,6 @@ def get_timeline(id):
        response_list = []
        for val in response:
             response_list.append(val)
-       jsonresponse = [{"deviceID": x.deviceid.replace('\"', ''), "time_stamp": x.time_stamp, "sensorName1": x.sensorName1, "sensorValue1": x.sensorValue1, "sensorName2": x.sensorName2, "sensorValue2": x.sensorValue2,} for x in response_list]
+       jsonresponse = [{"deviceID": x.deviceid.replace('\"', ''), "time_stamp": x.time_stamp, "sensorName1": x.sensorname1, "sensorValue1": x.sensorvalue1, "sensorName2": x.sensorname2, "sensorValue2": x.sensorvalue2,} for x in response_list]
        return jsonify(timeline=jsonresponse)
 
