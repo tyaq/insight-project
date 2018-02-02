@@ -165,7 +165,7 @@ public class sensorStream {
 
       //Efficiency
       //calculate work
-      DataStream<Tuple6<String,Float,String,Float,String,Float>> work = messageStream.keyBy("f0").timeWindow(Time.seconds(30), Time.seconds(1)).sum(1);
+      DataStream<Tuple6<String,Float,String,Float,String,Float>> work = messageStream.keyBy("f0").timeWindow(Time.seconds(30), Time.seconds(1)).sum("f3");
 
       work.print();
 
