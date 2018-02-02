@@ -84,7 +84,8 @@ public class sensorStream {
         f5: Long sensorValue2 (kw)
         */
 
-        CassandraSink.addSink(messageStream)
+        DataStream<Tuple6<String,Integer,String,Float,String,Float>> timeline = messageStream.map((MapFunction<Tuple6<String,Float,String,Float,String,Float>,Tuple6<String,Integer,String,Float,String,Float>>) node -> new Tuple6<String,Integer,String,Float,String,Float>(node.f0,node.f1.intValue(),node.f2,node.f3,node.f4,node.f5));
+        CassandraSink.addSink(timeline)
         .setQuery("INSERT INTO hypespace.timeline (deviceID, time_stamp,sensorName1,sensorValue1,sensorName2,sensorValue2) " +
             "values (?, ?, ?, ?, ?, ?);")
         .setHost("localhost")
