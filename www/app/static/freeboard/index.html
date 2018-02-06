@@ -7,17 +7,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="viewport" content = "width = device-width, initial-scale = 1, user-scalable = no" />
-    <link href="css/freeboard.min.css" rel="stylesheet" />
-    <script src="js/freeboard.thirdparty.min.js"></script>
+    <link href="static/freeboard/css/freeboard.min.css" rel="stylesheet" />
+    <script src="static/freeboard/js/freeboard.thirdparty.min.js"></script>
     <script type="text/javascript">
-        head.js("js/freeboard_plugins.min.js",
+        head.js("static/freeboard/js/freeboard_plugins.min.js",
                 // *** Load more plugins here ***
                 function(){
                     $(function()
                     { //DOM Ready
                         freeboard.initialize(false);
                         freeboard.showLoadingIndicator(true);
-                        $.getJSON("dashboard.json").done(function( data ) {
+                        $.getJSON("static/freeboard/dashboard.json").done(function( data ) {
                             freeboard.loadDashboard(data);
                             freeboard.setEditing(false,false);
                             freeboard.showLoadingIndicator(false);

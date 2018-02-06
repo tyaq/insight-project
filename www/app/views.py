@@ -15,7 +15,7 @@ session = cluster.connect('hypespace')
 @app.route('/')
 @app.route('/index')
 def index():
-  return app.send_static_file('static/freeboard/index.html')
+  return app.send_static_file('freeboard/index.html')
 
 @app.route('/api/status')
 def get_status():
