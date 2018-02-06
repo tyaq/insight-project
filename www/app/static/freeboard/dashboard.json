@@ -1,0 +1,157 @@
+{
+	"version": 1,
+	"allow_edit": true,
+	"plugins": [],
+	"panes": [
+		{
+			"width": 1,
+			"row": {
+				"3": 1,
+				"4": 9
+			},
+			"col": {
+				"3": 1,
+				"4": 1
+			},
+			"col_width": 1,
+			"widgets": [
+				{
+					"type": "text_widget",
+					"settings": {
+						"title": "",
+						"size": "regular",
+						"value": "Device List",
+						"animate": true
+					}
+				}
+			]
+		},
+		{
+			"title": "Scrat",
+			"width": 1,
+			"row": {
+				"4": 1
+			},
+			"col": {
+				"4": 1
+			},
+			"col_width": 1,
+			"widgets": [
+				{
+					"type": "text_widget",
+					"settings": {
+						"title": "Status",
+						"size": "regular",
+						"value": "datasources[\"Status\"][\"status\"][0][\"deviceID\"]",
+						"animate": true
+					}
+				},
+				{
+					"type": "indicator",
+					"settings": {
+						"title": "Door Sensor",
+						"value": "datasources[\"Status\"][\"status\"][0][\"door-open\"]",
+						"on_text": "Open",
+						"off_text": "Closed"
+					}
+				},
+				{
+					"type": "indicator",
+					"settings": {
+						"title": "Defrost Sensor",
+						"value": "datasources[\"Status\"][\"status\"][0][\"defrosted\"]",
+						"on_text": "Thawed",
+						"off_text": "Normal"
+					}
+				}
+			]
+		},
+		{
+			"width": 1,
+			"row": {
+				"4": 1
+			},
+			"col": {
+				"4": 4
+			},
+			"col_width": 1,
+			"widgets": [
+				{
+					"type": "gauge",
+					"settings": {
+						"title": "Efficiency",
+						"value": "datasources[\"Status\"][\"status\"][0][\"efficiency\"].toPrecision(4)",
+						"units": "Δ°F/kw",
+						"min_value": 0,
+						"max_value": "5"
+					}
+				}
+			]
+		},
+		{
+			"width": 1,
+			"row": {
+				"4": 1
+			},
+			"col": {
+				"4": 2
+			},
+			"col_width": 2,
+			"widgets": [
+				{
+					"type": "sparkline",
+					"settings": {
+						"title": "Temp",
+						"value": [
+							"datasources[\"Timeline\"][\"timeline\"].map(x => x[\"sensorValue1\"]).shift()"
+						]
+					}
+				}
+			]
+		},
+		{
+			"width": 1,
+			"row": {
+				"4": 7
+			},
+			"col": {
+				"4": 2
+			},
+			"col_width": 2,
+			"widgets": [
+				{
+					"type": "sparkline",
+					"settings": {
+						"title": "Energy",
+						"value": [
+							"datasources[\"Timeline\"][\"timeline\"].map(x => x[\"sensorValue2\"]).shift()"
+						]
+					}
+				}
+			]
+		}
+	],
+	"datasources": [
+		{
+			"name": "Status",
+			"type": "JSON",
+			"settings": {
+				"url": "http://www.scrat.live/api/status",
+				"use_thingproxy": true,
+				"refresh": 0.1,
+				"method": "GET"
+			}
+		},
+		{
+			"name": "Timeline",
+			"type": "JSON",
+			"settings": {
+				"url": "http://www.scrat.live/api/timeline/device4",
+				"use_thingproxy": true,
+				"refresh": 1,
+				"method": "GET"
+			}
+		}
+	],
+	"columns": 4
+}
