@@ -7,7 +7,7 @@ from app import app
 # importing Cassandra modules from the driver we just installed
 from cassandra.cluster import Cluster
 
-cluster = Cluster(['ec2-35-153-150-183.compute-1.amazonaws.com'])
+cluster = Cluster(['ec2-34-239-18-7.compute-1.amazonaws.com'])
 
 # Setting up connections to cassandra
 session = cluster.connect('hypespace')

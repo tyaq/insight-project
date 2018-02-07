@@ -100,7 +100,7 @@ public class sensorStream {
       CassandraSink.addSink(defrostResult)
           .setQuery("INSERT INTO hypespace.status (deviceID, defrosted) " +
               "values (?, ?);")
-          .setHost("localhost")
+          .setHost("10.0.0.6")
           .build();
 
 
@@ -173,7 +173,7 @@ public class sensorStream {
       CassandraSink.addSink(alerts)
           .setQuery("INSERT INTO hypespace.status (deviceID, doorOpen) " +
               "values (?, ?);")
-          .setHost("localhost")
+          .setHost("10.0.0.6")
           .build();
 
       //Efficiency
@@ -195,7 +195,7 @@ public class sensorStream {
     CassandraSink.addSink(efficiency)
         .setQuery("INSERT INTO hypespace.status (deviceID, efficiency) " +
             "values (?, ?);")
-        .setHost("localhost")
+        .setHost("10.0.0.6")
         .build();
 
       env.execute("JSON example");

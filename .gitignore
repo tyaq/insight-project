@@ -156,3 +156,5 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 processing/flinkStream/.idea/compiler.xml
+
+processing/flinkStream/src/main/java/org/insight/flinkStream/Config.java
