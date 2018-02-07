@@ -89,7 +89,7 @@ public class sensorStream {
         CassandraSink.addSink(timeline)
         .setQuery("INSERT INTO hypespace.timeline (deviceID, time_stamp,sensorName1,sensorValue1,sensorName2,sensorValue2) " +
             "values (?, ?, ?, ?, ?, ?);")
-        .setHost("localhost")
+        .setHost("10.0.0.6")
         .build();
 
         //defrost detection
