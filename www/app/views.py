@@ -31,7 +31,7 @@ def get_status():
 @app.route('/api/v1/status/<id>')
 def get_door(id):
        id='"'+id+'"'
-       stmt = 'SELECT * FROM status WHERE deviceID=%s'
+       stmt = 'SELECT * FROM status WHERE deviceID=%s LIMIT 1'
        print(stmt % id)
        response = session.execute(stmt,parameters=[id])
        response_list = []
@@ -43,7 +43,7 @@ def get_door(id):
 @app.route('/api/v1/timeline/<id>')
 def get_timeline(id):
        id='"'+id+'"'
-       stmt = 'SELECT * FROM timeline WHERE deviceID=%s'
+       stmt = 'SELECT * FROM timeline WHERE deviceID=%s LIMIT 1'
        print(stmt % id)
        response = session.execute(stmt,parameters=[id])
        response_list = []
