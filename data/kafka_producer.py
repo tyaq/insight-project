@@ -1,5 +1,6 @@
 import random
 import sys
+import math
 import six
 from datetime import datetime
 from kafka.client import KafkaClient
@@ -23,8 +24,8 @@ class Producer(object):
         while True:
             time_field = self.unix_time_mills(datetime.now())
             device_id='device'+str(user_counter) #device IDs
-            temp = 15*sin(time_field)-5
-            kws = (200*sin(2*time_field)+400)/3600
+            temp = random.uniform(-20,10)
+            kws = random.uniform(200,600)/3600
             message_info = json.dumps({ "time":time_field,
                                         "device-id":device_id,
                                         "sensor-name-1":"temp",
