@@ -1,0 +1,19 @@
+CREATE KEYSPACE hypespace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
+
+CREATE TABLE status (
+  deviceID text PRIMARY KEY, 
+  doorOpen boolean,
+  defrosted boolean,
+  efficiency float
+);
+
+CREATE TABLE timeline (
+  deviceID text,
+  time_stamp timestamp,
+  sensorName1 text,
+  sensorValue1 float,
+  sensorName2 text,
+  sensorValue2 float,
+  PRIMARY KEY ((deviceID), time_stamp)
+) WITH CLUSTERING ORDER BY (time_stamp DESC)
+AND gc_grace_seconds = 7200;

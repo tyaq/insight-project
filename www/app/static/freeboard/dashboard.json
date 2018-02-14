@@ -136,7 +136,7 @@
 			"name": "Status",
 			"type": "JSON",
 			"settings": {
-				"url": "http://www.scrat.live/api/status",
+				"url": "http://www.scrat.live/api/v1/status",
 				"use_thingproxy": true,
 				"refresh": 0.1,
 				"method": "GET"
@@ -146,7 +146,7 @@
 			"name": "Timeline",
 			"type": "JSON",
 			"settings": {
-				"url": "http://www.scrat.live/api/timeline/device4",
+				"url": "http://www.scrat.live/api/v1/timeline/device4",
 				"use_thingproxy": true,
 				"refresh": 1,
 				"method": "GET"

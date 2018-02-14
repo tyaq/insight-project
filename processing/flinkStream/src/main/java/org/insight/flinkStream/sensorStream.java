@@ -88,8 +88,8 @@ public class sensorStream {
         DataStream<Tuple6<String,Date,String,Float,String,Float>> timeline = messageStream.map((MapFunction<Tuple6<String,Float,String,Float,String,Float>,Tuple6<String,Date,String,Float,String,Float>>) node -> new Tuple6<String,Date,String,Float,String,Float>(node.f0,new Date(node.f1.longValue()),node.f2,node.f3,node.f4,node.f5));
         CassandraSink.addSink(timeline)
         .setQuery("INSERT INTO hypespace.timeline (deviceID, time_stamp,sensorName1,sensorValue1,sensorName2,sensorValue2) " +
-            "values (?, ?, ?, ?, ?, ?);")
-        .setHost("10.0.0.6")
+            "values (?, ?, ?, ?, ?, ?) USING TTL 7200;")
+        .setHost("10.0.0.5")
         .build();
 
         //defrost detection
@@ -100,7 +100,7 @@ public class sensorStream {
       CassandraSink.addSink(defrostResult)
           .setQuery("INSERT INTO hypespace.status (deviceID, defrosted) " +
               "values (?, ?);")
-          .setHost("10.0.0.6")
+          .setHost("10.0.0.5")
           .build();
 
 
@@ -173,7 +173,7 @@ public class sensorStream {
       CassandraSink.addSink(alerts)
           .setQuery("INSERT INTO hypespace.status (deviceID, doorOpen) " +
               "values (?, ?);")
-          .setHost("10.0.0.6")
+          .setHost("10.0.0.5")
           .build();
 
       //Efficiency
@@ -195,7 +195,7 @@ public class sensorStream {
     CassandraSink.addSink(efficiency)
         .setQuery("INSERT INTO hypespace.status (deviceID, efficiency) " +
             "values (?, ?);")
-        .setHost("10.0.0.6")
+        .setHost("10.0.0.5")
         .build();
 
       env.execute("JSON example");
