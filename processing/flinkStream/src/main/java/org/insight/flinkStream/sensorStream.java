@@ -89,7 +89,7 @@ public class sensorStream {
         CassandraSink.addSink(timeline)
         .setQuery("INSERT INTO hypespace.timeline (deviceID, time_stamp,sensorName1,sensorValue1,sensorName2,sensorValue2) " +
             "values (?, ?, ?, ?, ?, ?) USING TTL 7200;")
-        .setHost("10.0.0.5")
+        .setHost("10.0.0.6")
         .build();
 
         //defrost detection
@@ -100,7 +100,7 @@ public class sensorStream {
       CassandraSink.addSink(defrostResult)
           .setQuery("INSERT INTO hypespace.status (deviceID, defrosted) " +
               "values (?, ?);")
-          .setHost("10.0.0.5")
+          .setHost("10.0.0.6")
           .build();
 
 
@@ -141,7 +141,7 @@ public class sensorStream {
           }
       );
 
-      // Alert pattern: Two consecutive temperature warnings appearing within a time interval of 20 seconds
+      // Alert Pattern: Two consecutive temperatures appearing within a time interval of 20 seconds
       Pattern<Tuple2<String,Float>, ?> tempAlertPattern = Pattern.<Tuple2<String,Float>>begin("first")
           .next("second")
           .within(Time.seconds(20));
@@ -173,7 +173,7 @@ public class sensorStream {
       CassandraSink.addSink(alerts)
           .setQuery("INSERT INTO hypespace.status (deviceID, doorOpen) " +
               "values (?, ?);")
-          .setHost("10.0.0.5")
+          .setHost("10.0.0.6")
           .build();
 
       //Efficiency
@@ -195,7 +195,7 @@ public class sensorStream {
     CassandraSink.addSink(efficiency)
         .setQuery("INSERT INTO hypespace.status (deviceID, efficiency) " +
             "values (?, ?);")
-        .setHost("10.0.0.5")
+        .setHost("10.0.0.6")
         .build();
 
       env.execute("JSON example");
