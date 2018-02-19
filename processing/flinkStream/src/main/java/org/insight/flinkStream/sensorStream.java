@@ -116,7 +116,7 @@ public class sensorStream {
               lastEvent = itr.next();
             }
 
-            return node.f3.longValue() > lastEvent.f3.longValue() && node.f5.longValue() > lastEvent.f5.longValue();
+            return node.f3.longValue() > lastEvent.f3.longValue();
           }
         })
         .within(Time.seconds(10));
