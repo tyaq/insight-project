@@ -109,7 +109,7 @@ public class sensorStream {
         .next("second").where(new IterativeCondition < Tuple6 < String, Float, String, Float, String, Float >> () {
           @Override
           public boolean filter(Tuple6 < String, Float, String, Float, String, Float > node, Context < Tuple6 < String, Float, String, Float, String, Float >> context) throws Exception {
-            final Iterator < Tuple6 < String, Float, String, Float, String, Float >> itr = context.getEventsForPattern("second").iterator();
+            final Iterator < Tuple6 < String, Float, String, Float, String, Float >> itr = context.getEventsForPattern("first").iterator();
             Tuple6 < String, Float, String, Float, String, Float > lastEvent = itr.next();
 
             while (itr.hasNext()) {
