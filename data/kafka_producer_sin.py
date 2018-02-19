@@ -36,7 +36,7 @@ class Producer(object):
             self.producer.send('device_activity_stream', message_info)
             msg_cnt += 1
             user_counter += 1
-            if user_counter%10==0:
+            if user_counter%100==0:
                 user_counter=1
 
 if __name__ == "__main__":

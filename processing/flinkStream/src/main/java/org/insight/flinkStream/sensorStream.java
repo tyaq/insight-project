@@ -157,8 +157,6 @@ public class sensorStream {
         .setHost("10.0.0.6")
         .build();
 
-    alerts.print();
-
     //Efficiency
     //Calculate work
     DataStream < Tuple6 < String, Float, String, Float, String, Float >> work = messageStream.keyBy("f0")
@@ -174,7 +172,11 @@ public class sensorStream {
 
           @Override
           public Tuple3 < String, Float, Float > reduce(Tuple3 < String, Float, Float > v1, Tuple3 < String, Float, Float > v2) throws Exception {
-            return new Tuple3 < String, Float, Float > (v1.f0.toString(), abs(v1.f1.floatValue() - v2.f1.floatValue()) / v2.f2.floatValue(), Float.parseFloat("0"));
+            float dt = 0;
+            if (v1.f1.floatValue() - v2.f1.floatValue() < 0 ) {
+              dt = abs(v1.f1.floatValue() - v2.f1.floatValue());
+            }
+            return new Tuple3 < String, Float, Float > (v1.f0.toString(), dt / v2.f2.floatValue(), Float.parseFloat("0"));
           }
 
         })
