@@ -176,7 +176,7 @@ public class sensorStream {
 //            if (v1.f1.floatValue() - v2.f1.floatValue() < 0 ) {
 //              dt = abs(v1.f1.floatValue() - v2.f1.floatValue());
 //            }
-            return new Tuple3 < String, Float, Float > (v1.f0.toString(), -(v1.f1.floatValue() - v2.f1.floatValue()) / v2.f2.floatValue(), Float.parseFloat("0"));
+            return new Tuple3 < String, Float, Float > (v1.f0.toString(), (v1.f1.floatValue() - v2.f1.floatValue()) / v2.f2.floatValue(), Float.parseFloat("0"));
           }
 
         })
