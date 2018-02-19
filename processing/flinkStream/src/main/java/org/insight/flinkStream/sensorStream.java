@@ -103,13 +103,13 @@ public class sensorStream {
 
           @Override
           public boolean filter(Tuple6 < String, Float, String, Float, String, Float > node) throws Exception {
-            return node.f3.floatValue() >= TEMPERATURE_WARNING_THRESHOLD;
+            return true;
           }
         })
         .next("second").where(new IterativeCondition < Tuple6 < String, Float, String, Float, String, Float >> () {
           @Override
           public boolean filter(Tuple6 < String, Float, String, Float, String, Float > node, Context < Tuple6 < String, Float, String, Float, String, Float >> context) throws Exception {
-            final Iterator < Tuple6 < String, Float, String, Float, String, Float >> itr = context.getEventsForPattern("first").iterator();
+            final Iterator < Tuple6 < String, Float, String, Float, String, Float >> itr = context.getEventsForPattern("second").iterator();
             Tuple6 < String, Float, String, Float, String, Float > lastEvent = itr.next();
 
             while (itr.hasNext()) {
@@ -156,6 +156,8 @@ public class sensorStream {
             "values (?, ?);")
         .setHost("10.0.0.6")
         .build();
+
+    alerts.print();
 
     //Efficiency
     //Calculate work
