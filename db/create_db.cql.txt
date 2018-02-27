@@ -1,13 +1,15 @@
 CREATE KEYSPACE hypespace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
 
-CREATE TABLE status (
+USE hypespace;
+
+CREATE TABLE IF NOT EXISTS status (
   deviceID text PRIMARY KEY, 
   doorOpen boolean,
   defrosted boolean,
   efficiency float
 );
 
-CREATE TABLE timeline (
+CREATE TABLE IF NOT EXISTS timeline (
   deviceID text,
   time_stamp timestamp,
   sensorName1 text,

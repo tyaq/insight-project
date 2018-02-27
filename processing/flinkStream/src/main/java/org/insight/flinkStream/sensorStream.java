@@ -18,6 +18,8 @@ import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
@@ -42,8 +44,14 @@ public class sensorStream {
     properties.setProperty("zookeeper.connect", "localhost:2181");
     properties.setProperty("group.id", "group1");
 
-    // Use ingestion time == event time
-    // env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+    // start a checkpoint every minute
+    env.enableCheckpointing(6000);
+
+    // set mode to exactly-once
+    env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+
+    // Use event time
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
     //Monitor latency
     env.getConfig().setLatencyTrackingInterval(10);
@@ -64,16 +72,17 @@ public class sensorStream {
         })
         .name("Kafka Topic: device_activity_stream");
 
-    final int TEMPERATURE_WARNING_THRESHOLD = -9999;
+      /* Legend
+      f0: String deviceID
+      f1: Float timestamp
+      f2: String sensorName1 (temp)
+      f3: Float sensorValue1 (temp)
+      f4: String sensorName2 (kw)
+      f5: Float sensorValue2 (kw)
+      */
+
+
     final int DEFROST_THRESHOLD = 0;
-  /* Legend
-  f0: String deviceID
-  f1: Float timestamp
-  f2: String sensorName1 (temp)
-  f3: Float sensorValue1 (temp)
-  f4: String sensorName2 (kw)
-  f5: Float sensorValue2 (kw)
-  */
 
     //Warehouse Data
     DataStream < Tuple6 < String, Date, String, Float, String, Float >> timeline = messageStream.map((MapFunction < Tuple6 < String, Float, String, Float, String, Float > , Tuple6 < String, Date, String, Float, String, Float >> ) node -> new Tuple6 < String, Date, String, Float, String, Float > (node.f0, new Date(node.f1.longValue()), node.f2, node.f3, node.f4, node.f5));
@@ -103,6 +112,7 @@ public class sensorStream {
 
           @Override
           public boolean filter(Tuple6 < String, Float, String, Float, String, Float > node) throws Exception {
+            // Create event for all data points in window
             return true;
           }
         })
@@ -135,13 +145,13 @@ public class sensorStream {
               String,
               Float,
               String,
-              Float > first = (Tuple6 < String, Float, String, Float, String, Float > ) pattern.get("first").get(0);
+              Float > first = pattern.get("first").get(0);
           Tuple6 < String,
               Float,
               String,
               Float,
               String,
-              Float > second = (Tuple6 < String, Float, String, Float, String, Float > ) pattern.get("second").get(0);
+              Float > second = pattern.get("second").get(0);
 
           if (first.f5.floatValue() < second.f5.floatValue()) {
             out.collect(new Tuple2 < String, Boolean > (first.f0.toString(), Boolean.TRUE));
@@ -172,10 +182,7 @@ public class sensorStream {
 
           @Override
           public Tuple3 < String, Float, Float > reduce(Tuple3 < String, Float, Float > v1, Tuple3 < String, Float, Float > v2) throws Exception {
-//            float dt = 0;
-//            if (v1.f1.floatValue() - v2.f1.floatValue() < 0 ) {
-//              dt = abs(v1.f1.floatValue() - v2.f1.floatValue());
-//            }
+
             return new Tuple3 < String, Float, Float > (v1.f0.toString(), (v1.f1.floatValue() - v2.f1.floatValue()) / v2.f2.floatValue(), Float.parseFloat("0"));
           }
 
