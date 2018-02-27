@@ -33,7 +33,12 @@ Scrat provides a dashboard to monitor these stream and show detected events. Thi
 
 1. Install [Pegasus](https://github.com/InsightDataScience/pegasus), more details are provided in the [deployment README](deployment/README.md)
 
-2. Create two files in `~/.ssh/`, `sg.txt` and `subnet.txt`, with your AWS security group id, and AWS VPC subnet id.
+2. Clone this repository.
+```Bash
+git clone https://github.com/tyaq/scrat.git
+``` 
+
+3. Create two files in `~/.ssh/`, `sg.txt` and `subnet.txt`, with your AWS security group id, and AWS VPC subnet id.
 ```Bash
 cd ~/.ssh/
 
@@ -44,7 +49,7 @@ touch subnet.txt
 echo 'subnet-XXXXXXXX' > subnet.txt
 ```
 
-3. Run the deployment script. It will install and start the necessary technologies to your clusters.
+4. Run the deployment script. It will install and start the necessary technologies to your clusters.
 ```Bash
 bash scrat/deployment/deploy.sh
 ```
