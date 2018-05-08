@@ -21,6 +21,8 @@ In Scrat's default configuration it processes 7,000 events/sec per m4.large node
 
 Scrat provides a dashboard to monitor these stream and show detected events. This repository implements the pipeline architecture to monitor temperature and energy events from refrigerators in a supermarket setting.
 
+[Slide Deck](https://docs.google.com/presentation/d/1ijwCwPAGc8S-w-SwnXcyRyUsG7-RNzDlXh6_h3-rmho/edit?usp=sharing)
+
 ![Technology Overview](pipeline.png)
 
 ## Requirements
